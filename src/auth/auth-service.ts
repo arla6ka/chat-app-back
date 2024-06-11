@@ -13,13 +13,14 @@ class AuthService {
   private readonly jwtRefreshSecret = process.env.JWT_REFRESH_SECRET!;
 
   async registerUser(createUserDto: CreateUserDto): Promise<IUser> {
-    const { email, password, username } = createUserDto;
+    const { email, password, username, city } = createUserDto;
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new UserModel({
       email,
       username,
       password: hashedPassword,
+      city,
     });
 
     await newUser.save();
@@ -27,27 +28,38 @@ class AuthService {
   }
 
   async loginUser(email: string, password: string): Promise<{ user: IUser, accessToken: string, refreshToken: string } | null> {
-    const user = await UserModel.findOne({ email });
-    if (!user) return null;
+    try {
+      const user = await UserModel.findOne({ email });
+      if (!user) {
+        console.error('User not found with email:', email); // Added logging
+        return null;
+      }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) return null;
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        console.error('Invalid password for user:', email); // Added logging
+        return null;
+      }
 
-    const accessToken = this.generateJwt(user);
-    const refreshToken = this.generateRefreshToken(user);
+      const accessToken = this.generateJwt(user);
+      const refreshToken = this.generateRefreshToken(user);
 
-    const refreshTokenDoc = new RefreshTokenModel({ token: refreshToken, user: user._id });
-    await refreshTokenDoc.save();
+      const refreshTokenDoc = new RefreshTokenModel({ token: refreshToken, user: user._id });
+      await refreshTokenDoc.save();
 
-    return { user, accessToken, refreshToken };
+      return { user, accessToken, refreshToken };
+    } catch (error) {
+      console.error('Error in loginUser:', error); // Added logging
+      throw error;
+    }
   }
 
   private generateJwt(user: IUser): string {
-    return jwt.sign({ id: user._id, email: user.email }, this.jwtSecret, { expiresIn: '1h' });
+    return jwt.sign({ id: user._id, email: user.email, city: user.city }, this.jwtSecret, { expiresIn: '1h' });
   }
 
   private generateRefreshToken(user: IUser): string {
-    return jwt.sign({ id: user._id, email: user.email }, this.jwtRefreshSecret, { expiresIn: '7d' });
+    return jwt.sign({ id: user._id, email: user.email, city: user.city }, this.jwtRefreshSecret, { expiresIn: '7d' });
   }
 
   verifyJwt(token: string): any {

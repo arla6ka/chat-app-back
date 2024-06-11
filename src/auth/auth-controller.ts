@@ -15,6 +15,7 @@ class AuthController {
       const user = await this.authService.registerUser(createUserDto);
       res.status(201).json(user);
     } catch (err) {
+      console.error('Error registering user:', err);
       res.status(500).json({ message: 'Error registering user' });
     }
   }
@@ -24,11 +25,13 @@ class AuthController {
       const { email, password } = req.body;
       const result = await this.authService.loginUser(email, password);
       if (!result) {
+        console.error('Invalid email or password');
         res.status(401).json({ message: 'Invalid email or password' });
         return;
       }
       res.status(200).json(result);
     } catch (err) {
+      console.error('Error logging in:', err); 
       res.status(500).json({ message: 'Error logging in' });
     }
   }
