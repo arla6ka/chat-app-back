@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import User, { IUser } from './models/User';
 
-const secret = 'your_secret_key'; // Измените на ваш секретный ключ
+const secret = 'your_secret_key'; 
 
 export const generateToken = (user: IUser) => {
   return jwt.sign({ id: user._id, username: user.username }, secret, {
