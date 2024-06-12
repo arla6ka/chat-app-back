@@ -13,7 +13,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'https://chat-app-ebon-pi.vercel.app', // URL вашего клиента
+    origin: 'https://chat-b0g22qciy-arla6kas-projects.vercel.app', // URL вашего клиента
     methods: ['GET', 'POST'],
   },
 });
